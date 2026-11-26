@@ -68,18 +68,3 @@ python bot.py
 | `handlers/admin.py` | Admin panel |
 
 Baza `best_shop.db` faylida saqlanadi — bu faylni o'chirmang va vaqti-vaqti bilan nusxasini oling.
-
-## Claude Code + ECC
-
-Loyihani Claude Code'da davom ettirish uchun [ECC](https://github.com/affaan-m/ECC) ni o'rnating (Node.js 18+ kerak). Bitta usulni tanlang:
-
-```bash
-# 1-usul: terminalda
-npx ecc-universal@2.2.3 setup
-
-# 2-usul: Claude Code ichida
-/plugin marketplace add https://github.com/affaan-m/ECC
-/plugin install ecc@ecc
-```
-
-Keyin shu papkani Claude Code'da oching (`cd best_shop_bot` → `claude`). Python kodini tekshirish uchun `/python-review` buyrug'idan foydalanish mumkin. Loyiha haqidagi ma'lumot `CLAUDE.md` faylida.
