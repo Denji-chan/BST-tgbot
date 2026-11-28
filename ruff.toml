@@ -1,0 +1,10 @@
+line-length = 120
+target-version = "py312"
+extend-exclude = ["migrations/script.py.mako"]
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["B008"]
+
+[lint.isort]
+known-first-party = ["data", "handlers", "keyboards", "filters", "middlewares", "services", "states", "utils", "loader"]

@@ -1,8 +1,18 @@
+# Maxfiy sozlamalar
 .env
-*.db
-*.db-wal
-*.db-shm
-venv/
-.venv/
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Loglar va zaxira nusxalar
+logs/
+backups/
+*.log
+
+# IDE
+.idea/
+.vscode/

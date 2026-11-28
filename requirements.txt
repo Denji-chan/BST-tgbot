@@ -1,3 +1,9 @@
 aiogram>=3.13,<4
+environs>=11,<15
+# Windows'da Asia/Tashkent vaqt zonasi bazasi uchun kerak
+tzdata>=2024.1
+SQLAlchemy>=2.0.30,<2.1
+asyncpg>=0.29
+alembic>=1.13
+APScheduler>=3.10,<4
 openpyxl>=3.1
-python-dotenv>=1.0

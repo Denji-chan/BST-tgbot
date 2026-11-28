@@ -1,70 +1,152 @@
-# BEST SHOP TREND — Telegram bot (mijozlar bazasi + cashback)
+# BEST SHOP TREND bot
 
-Python (aiogram 3) da yozilgan bot. Mijozlarni ro'yxatga oladi, ularga cashback yig'adi va do'konga qayta jalb qilish uchun xabar yuborishga yordam beradi.
+Nukusdagi BEST SHOP TREND qizlar kiyim do'koni uchun Telegram bot: mijozlar bazasi va cashback tizimi.
 
-## Imkoniyatlar
+**Mijozlar uchun:** ro'yxatdan o'tish (til, ism, familiya, kontakt, tug'ilgan kun), har xariddan 3% cashback, 90 kunlik muddat, referal havola (30 000 so'm bonus), tug'ilgan kunda 10% chegirma, profil, support, tilni almashtirish (o'zbek, rus, ingliz).
 
-**Mijoz tomoni**
-- `/start` → til tanlash (O'zbekcha / Русский / Qaraqalpaqsha)
-- "Biz haqimizda qayerdan eshitdingiz?" (Instagram, Telegram, do'stlardan, do'kon yonidan, reklama, boshqa)
-- Telegramga ulangan telefon raqam (faqat tugma orqali, faqat o'z raqami)
-- Ism Familiya → bazaga saqlanadi, mijozga **mijoz raqami (ID)** beriladi
-- 👤 **Profil** — ID, ism, telefon, **cashback balansi**, cashback tarixi
-- ⚙️ **Sozlamalar** — tilni va ism-familiyani o'zgartirish
-- Cashback qo'shilganda yoki ishlatilganda mijozga avtomatik xabar boradi
+**Adminlar uchun:** xarid kiritish, statistika, mijozlar ro'yxati va Excel, avtomatik matnlarni tahrirlash, rassilka. Developer adminlarni qo'shadi va o'chiradi.
 
-**Admin tomoni**
-- 📢 **Xabar yuborish** — rasm + pastida matn (yoki faqat matn / video), oldin ko'rib chiqib, keyin tasdiqlab yuboriladi
-- 📊 **Statistika** — jami mijozlar, bugun / 7 kun / 30 kun, til va "qayerdan eshitgan" bo'yicha, cashback summalari
-- 📥 **Excel yuklab olish** — 3 varaqli fayl: Mijozlar, Statistika, Cashback amallari
-- ➕ **Cashback qo'shish** — mijoz ID yoki telefon → xarid summasi → bot foizni (boshida 3%) hisoblaydi → tasdiqlash
-- ➖ **Cashback ishlatish** — mijoz balansidan ayirish (balansdan ortiq bo'lmaydi)
-- 🔎 **Mijozni topish** — ID yoki telefon bo'yicha, tarixi bilan
-- 💯 **Cashback foizi** — 0–50% oralig'ida o'zgartirish
-- ⚙️ **Sozlamalar** — admin ham tilni o'zgartira oladi
-- 👥 **Adminlar** — faqat DEVELOPER (`8897276236`) ko'radi: admin qo'shish / olib tashlash
+Arxitektura "mukammal bot" shabloni asosida qurilgan va aiogram 3 ga o'tkazilgan.
 
-## O'rnatish (Windows)
+---
 
-1. **Python 3.10+** o'rnating: https://www.python.org/downloads/ — o'rnatishda **"Add Python to PATH"** ga belgi qo'ying.
-2. **Bot token oling:** Telegramda @BotFather → `/newbot` → nom va username bering → tokenni nusxalang.
-3. Shu papkadagi `.env.example` faylini nusxalab, nomini **`.env`** qiling va `BOT_TOKEN=` dan keyin tokenni yozing.
-4. **`run_bot.bat`** faylini ikki marta bosing — kutubxonalarni o'rnatadi va botni ishga tushiradi.
+## 1. Bot tokenini olish (BotFather)
 
-Yoki terminalda qo'lda:
+1. Telegram'da [@BotFather](https://t.me/BotFather) ni oching va `/newbot` yozing.
+2. Botga nom bering (masalan, `BEST SHOP TREND`), keyin `bot` bilan tugaydigan username (masalan, `bestshop_trend_bot`).
+3. BotFather bergan tokenni nusxalang. U `123456789:AA...` ko'rinishida bo'ladi. **Tokenni hech kimga bermang.**
+4. O'zingizning Telegram ID raqamingizni bilish uchun [@userinfobot](https://t.me/userinfobot) ga yozing. Bu raqam `DEVELOPER_ID` bo'ladi.
+
+## 2. `.env` faylini to'ldirish
 
 ```bash
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python bot.py
+cp .env.dist .env        # Windows: copy .env.dist .env
 ```
 
-5. Telegramda botingizga kiring va `/start` bosing. `8897276236` ID li akkaunt avtomatik **developer** bo'ladi va admin panelni ko'radi.
+`.env` ichida:
 
-> ⚠️ Bot faqat kompyuter yoqiq va `bot.py` ishlab turganda javob beradi. Doimiy (24/7) ishlashi uchun keyin VPS serverga joylash kerak.
+| O'zgaruvchi | Majburiy | Izoh |
+| --- | --- | --- |
+| `BOT_TOKEN` | ha | BotFather bergan token |
+| `DEVELOPER_ID` | ha | Bosh admin (Developer) Telegram ID'si |
+| `DATABASE_URL` | ha | Docker'siz ishga tushirish uchun: `postgresql+asyncpg://user:parol@localhost:5432/bestshop` |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Docker uchun | PostgreSQL konteyneri foydalanuvchisi, paroli va bazasi |
+| `TIMEZONE` | yo'q | Standart: `Asia/Tashkent` |
+| `CASHBACK_MAX_USE_PERCENT` | yo'q | Xarid summasining necha foizini cashback bilan to'lash mumkin. Standart: `50` |
+| `LOG_LEVEL` | yo'q | Standart: `INFO` |
+| `LOG_DIR` | yo'q | Standart: `logs` |
 
-## Cashback qanday ishlaydi
+`POSTGRES_PASSWORD` ga murakkab parol yozing. `.env` faylini git'ga qo'shmang, u `.gitignore` da turibdi.
 
-1. Mijoz kassada mijoz raqamini (ID) yoki telefonini aytadi.
-2. Admin: **➕ Cashback qo'shish** → ID/telefon → xarid summasi (masalan `250000`).
-3. Bot hisoblaydi: 250 000 × 3% = **7 500 so'm**, admin tasdiqlaydi → mijozga xabar boradi.
-4. Mijoz cashbackni ishlatmoqchi bo'lsa: **➖ Cashback ishlatish** → summa → tasdiqlash.
+## 3. Docker bilan ishga tushirish (tavsiya etiladi)
 
-## Fayllar
+Serverda Docker va Docker Compose o'rnatilgan bo'lishi kerak.
 
-| Fayl | Vazifasi |
-|---|---|
-| `bot.py` | Botni ishga tushiradi |
-| `config.py` | Sozlamalar (`.env` dan o'qiydi) |
-| `database.py` | SQLite baza: mijozlar, adminlar, cashback amallari |
-| `texts.py` | Barcha matnlar 3 tilda |
-| `keyboards.py` | Tugmalar |
-| `states.py` | Bosqichlar (FSM) |
-| `helpers.py` | Yordamchi funksiyalar |
-| `excel_export.py` | Excel fayl yaratish |
-| `handlers/common.py` | `/start`, bekor qilish |
-| `handlers/user.py` | Mijoz tomoni |
-| `handlers/admin.py` | Admin panel |
+```bash
+docker compose up -d --build
+```
 
-Baza `best_shop.db` faylida saqlanadi — bu faylni o'chirmang va vaqti-vaqti bilan nusxasini oling.
+Bu buyruq ikkita konteynerni ishga tushiradi: `db` (PostgreSQL 16) va `bot`. Bot har ishga tushganda avval migratsiyalarni o'zi bajaradi (`alembic upgrade head`), keyin polling'ni boshlaydi.
+
+Foydali buyruqlar:
+
+```bash
+docker compose logs -f bot         # loglarni ko'rish
+docker compose restart bot         # botni qayta ishga tushirish
+docker compose pull && docker compose up -d --build   # yangilash
+docker compose down                # to'xtatish (ma'lumotlar saqlanib qoladi)
+```
+
+Baza ma'lumotlari `pgdata` volume'ida saqlanadi, loglar esa `./logs` papkasida. Baza porti tashqariga ochilmaydi.
+
+## 4. Migratsiya
+
+Docker'da migratsiya avtomatik bajariladi. Qo'lda bajarish uchun:
+
+```bash
+# Docker ichida
+docker compose run --rm bot alembic upgrade head
+
+# Docker'siz
+alembic upgrade head
+```
+
+Migratsiya `.env` dagi `DATABASE_URL` dan foydalanadi.
+
+## 5. Docker'siz ishga tushirish
+
+Python 3.12 va PostgreSQL kerak.
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# PostgreSQL'da baza va foydalanuvchi yarating, .env dagi DATABASE_URL ni moslang
+alembic upgrade head
+python app.py
+```
+
+## 6. Birinchi admin
+
+- **Developer** `.env` dagi `DEVELOPER_ID` bo'yicha avtomatik tanilib qoladi. Botga `/start` yozing: ro'yxatdan o'tish o'rniga admin paneli ochiladi. Bot ishga tushganda Developer'ga "Bot ishga tushdi" xabari ham keladi.
+- **Boshqa adminlar:** admin panelida **🛡 Adminlar → ➕ Admin qo'shish** ni bosing va yangi adminning Telegram ID raqamini yozing (yoki uning xabarini forward qiling). Yangi admin botga `/start` yoki `/admin` yozsa, panel ochiladi.
+- Adminni o'chirish ham shu bo'limda. Developer'ni o'chirib bo'lmaydi.
+
+## 7. Testlar va tekshiruv
+
+```bash
+pip install -r requirements-dev.txt
+pytest                 # barcha testlar (baza testlari SQLite xotirada ishlaydi)
+ruff check .           # kod sifati
+flake8 .
+```
+
+Kerakli paketlar o'rnatilmagan bo'lsa, baza va aiogram'ga bog'liq testlar avtomatik o'tkazib yuboriladi (`skipped`). To'liq tekshiruv uchun `requirements-dev.txt` ni o'rnating.
+
+## 8. Avtomatik vazifalar (Asia/Tashkent)
+
+| Vaqt | Vazifa |
+| --- | --- |
+| Har kuni 00:05 | Muddati o'tgan cashback kuyadi |
+| Har kuni 10:00 | Tug'ilgan kuni bo'lgan mijozlarga tabrik va chegirma haqida xabar |
+| Har kuni 20:00 | 60, 90 va 120 kun kelmagan mijozlarga xabar (har bir bosqich bir marta) |
+| Har oy 25-sana 10:00 | Barcha adminlarga oylik to'lov eslatmasi |
+
+## 9. Xarid kiritish formati
+
+Admin mahsulotlarni har birini yangi qatordan yozadi:
+
+```
+Ko'ylak - 150000
+Shim - 2 x 120 000
+```
+
+Ajratuvchi sifatida `-`, `;` yoki `:` ishlatilishi mumkin. Narxda bo'sh joy bo'lishi mumkin.
+
+## 10. Tuzilma
+
+```
+app.py                  # ishga tushirish: asyncio.run(main())
+loader.py               # Bot, Dispatcher, baza ulanishi
+data/                   # config.py (.env), settings.py (tekshiruv)
+handlers/
+  users/                # start, profile, referral, support, settings, chat_member, help, fallback
+  admins/               # menu, purchase, stats, users_list, texts, broadcast, admins, support_reply
+  errors/  groups/  channels/
+keyboards/default/      # reply tugmalar
+keyboards/inline/       # inline tugmalar va callback ma'lumotlari
+states/                 # FSM: registration, purchase, broadcast, edit_text, support, admins
+filters/                # IsAdmin, IsDeveloper, IsRegistered
+middlewares/            # throttling, i18n (til), database (sessiya)
+services/               # biznes mantiq: cashback, referal, tug'ilgan kun, xarid, statistika, rassilka...
+utils/
+  db_api/               # SQLAlchemy modellari va repository'lar
+  misc/                 # i18n, logging, throttling, formatlash
+  scheduler.py          # APScheduler vazifalari
+locales/                # uz.json, ru.json, en.json
+migrations/             # Alembic
+tests/                  # pytest (tests/db - baza testlari)
+```
+
+Qabul qilingan qarorlar: [DECISIONS.md](DECISIONS.md). Keyingi g'oyalar: [IDEAS.md](IDEAS.md).
